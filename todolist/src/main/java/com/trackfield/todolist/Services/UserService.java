@@ -22,6 +22,14 @@ public class UserService {
         return findUser;
     }
 
+    public List<User> findAll(){
+        List<User> findedUsers = userRepository.findAll();
+        if (findedUsers.isEmpty()){
+            throw new RuntimeException("Erro: nenhum usuário foi cadastrado ainda!");
+        }
+        return findedUsers;
+    }
+
     public User createNewUser(UserDTO data){
         User newUser = new User(data);
         return userRepository.save(newUser);
