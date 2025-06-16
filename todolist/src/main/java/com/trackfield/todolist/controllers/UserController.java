@@ -2,6 +2,7 @@ package com.trackfield.todolist.controllers;
 
 import com.trackfield.todolist.Services.UserService;
 import com.trackfield.todolist.dtos.UserDTO;
+import com.trackfield.todolist.dtos.SimpleUserResponseDTO;
 import com.trackfield.todolist.dtos.UserResponseDTO;
 import com.trackfield.todolist.models.User;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +25,10 @@ public class UserController {
         return ResponseEntity.ok(userService.findAll());
     }
 
-    @GetMapping("/{uuid}")
-    public ResponseEntity findUser(@PathVariable String uuid){
-        User findedUser = userService.getUserByID(uuid);
-        UserResponseDTO response = new UserResponseDTO(findedUser.getId(), findedUser.getFirstName(),
+    @GetMapping("/{cpf}")
+    public ResponseEntity findUser(@PathVariable String cpf){
+        User findedUser = userService.getUserByID(cpf);
+        UserResponseDTO response = new UserResponseDTO(findedUser.getCpf(), findedUser.getFirstName(),
                 findedUser.getLastName(), findedUser.getEmail(), findedUser.getUserType());
         return ResponseEntity.ok(response);
     }
