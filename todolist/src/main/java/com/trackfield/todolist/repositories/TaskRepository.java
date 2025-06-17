@@ -10,4 +10,6 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Tasks, Long> {
 
     List<Tasks> findByUserCpf(String userCpf);
+
+    List<Tasks> findByUserCpfAndFinished(String userCpf, boolean finished);
 }

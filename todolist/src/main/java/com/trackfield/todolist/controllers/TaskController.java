@@ -19,10 +19,19 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> getTask(@PathVariable Long id){ // <<-- Retorna o DTO
+    public ResponseEntity getTask(@PathVariable Long id){ // <<-- Retorna o DTO
         TaskResponseDTO findedTask = taskService.getTaskByIdResponse(id);
 
         return ResponseEntity.ok(findedTask);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity toggleTaskStatus(@PathVariable Long id){
+        boolean newStatus = taskService.toggleTaskStatus(id);
+        if (newStatus) {
+            return ResponseEntity.status(200).body("Tarefa alterada para CONCLUÍDA");
+        }
+        return ResponseEntity.status(200).body("Tarefa alterada para ATIVA");
     }
 
     @PostMapping
@@ -34,4 +43,5 @@ public class TaskController {
 
         return ResponseEntity.ok(response);
     }
+
 }

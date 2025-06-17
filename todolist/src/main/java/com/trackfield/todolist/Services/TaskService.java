@@ -1,10 +1,12 @@
 package com.trackfield.todolist.Services;
 
+import com.trackfield.todolist.Exceptions.EntityNotFoundException;
 import com.trackfield.todolist.dtos.*;
 import com.trackfield.todolist.models.Tasks;
 import com.trackfield.todolist.models.User;
 import com.trackfield.todolist.repositories.TaskRepository;
 import com.trackfield.todolist.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,27 +25,35 @@ public class TaskService {
         return taskRepository.getReferenceById(id);
     }
 
-    public List<SimpleTaskResponseDTO> simpleFindAllByUserCpf(String cpf){
-        List<Tasks> findedTasks = taskRepository.findByUserCpf(cpf);
+    @Transactional
+    public boolean toggleTaskStatus(Long taskId){
+        Tasks task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com o id: " + taskId));
+        if (task.getFinished()) {
+            task.setFinished(false);
+            return false;
+        }
+        task.setFinished(true);
+        return true;
+    }
 
-        return findedTasks.stream()           // Converte a lista para um fluxo de dados.
-                .map(tasks -> new SimpleTaskResponseDTO( // Para cada 'user' no fluxo...
-                        tasks.getId(),                   // ...cria um novo SimpleUserResponseDTO.
-                        tasks.getTitle(),
-                        tasks.getDescription()
-                ))
-                .collect(Collectors.toList()); // Coleta os DTOs criados em uma nova lista.
+    public List<SimpleTaskResponseDTO> findActiveTasksByCpf(String userCpf){
+        List<Tasks> activeTasks = taskRepository.findByUserCpfAndFinished(userCpf, false);
+
+        return activeTasks.stream().map(tasks -> new SimpleTaskResponseDTO(
+                tasks.getId(),
+                tasks.getTitle(),
+                tasks.getDescription()
+        )).collect(Collectors.toList());
     }
 
     public TaskResponseDTO getTaskByIdResponse(Long id){
         Tasks task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada com o id: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com o id: " + id));
         return toResponseDTO(task);
     }
 
-    // Método conversor corrigido
     private TaskResponseDTO toResponseDTO(Tasks task) {
-        // Use o novo DTO simplificado aqui
         SimpleUserResponseDTO userDTO = new SimpleUserResponseDTO(
                 task.getUser().getCpf(),
                 task.getUser().getFirstName(),
@@ -54,7 +64,7 @@ public class TaskService {
 
     public Tasks createTask(TaskDTO data){
         User user = userRepository.findById(data.userCpf())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o id: " + data.userCpf()));
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com o id: " + data.userCpf()));
 
         Tasks newTask = new Tasks();
         newTask.setTitle(data.title());

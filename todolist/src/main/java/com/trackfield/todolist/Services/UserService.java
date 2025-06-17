@@ -1,5 +1,6 @@
 package com.trackfield.todolist.Services;
 
+import com.trackfield.todolist.Exceptions.EntityNotFoundException;
 import com.trackfield.todolist.dtos.SimpleUserResponseDTO;
 import com.trackfield.todolist.dtos.UserDTO;
 import com.trackfield.todolist.dtos.UserResponseDTO;
@@ -18,12 +19,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final TaskService taskService;
 
-    public User getUserByID(String cpf){
-        verifyIsNull(cpf);
+    public UserResponseDTO getUserByID(String cpf){
+        User findedUser = userRepository.findById(cpf)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado pelo CPF: " + cpf));
 
-        User findUser = userRepository.getReferenceById(cpf);
-
-        return findUser;
+        UserResponseDTO response = new UserResponseDTO(findedUser.getCpf(),
+                findedUser.getFirstName(),
+                findedUser.getLastName(),
+                findedUser.getEmail(),
+                findedUser.getUserType(),
+                taskService.findActiveTasksByCpf(findedUser.getCpf()));
+        return response;
     }
 
     public List<UserResponseFindAllDTO> findAll(){
@@ -34,7 +40,7 @@ public class UserService {
                         user.getCpf(),                   // ...cria um novo SimpleUserResponseDTO.
                         user.getFirstName(),
                         user.getLastName(),
-                        taskService.simpleFindAllByUserCpf(user.getCpf())
+                        taskService.findActiveTasksByCpf(user.getCpf()) //Mostra as tasks ATIVAS do usuário
                 ))
                 .collect(Collectors.toList()); // Coleta os DTOs criados em uma nova lista.
     }

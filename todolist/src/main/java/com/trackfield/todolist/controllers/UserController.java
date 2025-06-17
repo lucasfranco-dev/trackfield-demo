@@ -5,6 +5,7 @@ import com.trackfield.todolist.dtos.UserDTO;
 import com.trackfield.todolist.dtos.SimpleUserResponseDTO;
 import com.trackfield.todolist.dtos.UserResponseDTO;
 import com.trackfield.todolist.models.User;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +21,15 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity getAll(){
-
-
         return ResponseEntity.ok(userService.findAll());
     }
 
+
+
     @GetMapping("/{cpf}")
     public ResponseEntity findUser(@PathVariable String cpf){
-        User findedUser = userService.getUserByID(cpf);
-        UserResponseDTO response = new UserResponseDTO(findedUser.getCpf(), findedUser.getFirstName(),
-                findedUser.getLastName(), findedUser.getEmail(), findedUser.getUserType());
-        return ResponseEntity.ok(response);
+        UserResponseDTO response = userService.getUserByID(cpf);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping

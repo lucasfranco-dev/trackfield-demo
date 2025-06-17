@@ -1,7 +1,5 @@
 package com.trackfield.todolist.models;
 
-import com.trackfield.todolist.Services.UserService;
-import com.trackfield.todolist.dtos.TaskDTO;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,4 +27,6 @@ public class Tasks {
     private String title;
 
     private String description;
+
+    private Boolean finished = false;
 }
