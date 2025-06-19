@@ -1,4 +1,4 @@
-package com.trackfield.todolist.dtos;
+package com.trackfield.todolist.dtos.user;
 
 public record SimpleUserResponseDTO(
         String cpf,

@@ -1,10 +1,9 @@
 package com.trackfield.todolist.controllers;
 
-import com.trackfield.todolist.Services.TaskService;
-import com.trackfield.todolist.dtos.TaskDTO;
-import com.trackfield.todolist.dtos.TaskResponseDTO;
-import com.trackfield.todolist.models.Tasks;
-import org.springframework.http.HttpStatus;
+import com.trackfield.todolist.services.TaskService;
+import com.trackfield.todolist.dtos.task.TaskDTO;
+import com.trackfield.todolist.dtos.task.TaskResponseDTO;
+import com.trackfield.todolist.models.Task;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +35,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity createTask(@RequestBody TaskDTO data){
-        Tasks task = taskService.createTask(data);
+        Task task = taskService.createTask(data);
 
         TaskResponseDTO response = taskService.getTaskByIdResponse(task.getId());
 

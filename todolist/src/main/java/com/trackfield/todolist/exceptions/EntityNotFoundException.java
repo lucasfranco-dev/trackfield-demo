@@ -1,4 +1,4 @@
-package com.trackfield.todolist.Exceptions;
+package com.trackfield.todolist.exceptions;
 
 public class EntityNotFoundException extends RuntimeException
 {

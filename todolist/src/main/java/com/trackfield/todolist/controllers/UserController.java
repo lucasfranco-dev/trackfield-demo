@@ -1,9 +1,8 @@
 package com.trackfield.todolist.controllers;
 
-import com.trackfield.todolist.Services.UserService;
-import com.trackfield.todolist.dtos.UserDTO;
-import com.trackfield.todolist.dtos.SimpleUserResponseDTO;
-import com.trackfield.todolist.dtos.UserResponseDTO;
+import com.trackfield.todolist.services.UserService;
+import com.trackfield.todolist.dtos.user.UserDTO;
+import com.trackfield.todolist.dtos.user.SellerResponseDTO;
 import com.trackfield.todolist.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ public class UserController {
 
     @GetMapping("/{cpf}")
     public ResponseEntity findUser(@PathVariable String cpf){
-        UserResponseDTO response = userService.getUserByID(cpf);
+        SellerResponseDTO response = userService.findById(cpf);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

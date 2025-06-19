@@ -5,15 +5,20 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
-@Table(name = Tasks.TABLE_NAME)
-@Entity(name = Tasks.TABLE_NAME)
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.Date;
+
+@Table(name = Task.TABLE_NAME)
+@Entity(name = Task.TABLE_NAME)
 @Getter
 @Setter
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
-public class Tasks {
-    public static final String TABLE_NAME = "tarefas";
+public class Task {
+    public static final String TABLE_NAME = "tasks";
 
     @Id
     @Column(unique = true)
@@ -29,4 +34,6 @@ public class Tasks {
     private String description;
 
     private Boolean finished = false;
+
+
 }

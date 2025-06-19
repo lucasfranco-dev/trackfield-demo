@@ -1,8 +1,9 @@
 package com.trackfield.todolist.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.trackfield.todolist.dtos.UserDTO;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.trackfield.todolist.dtos.user.UserDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -17,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(of = "cpf")
 @Getter
+@Setter
 public class User {
     public static final String TABLE_NAME = "users";
 
@@ -52,12 +54,23 @@ public class User {
     UserType userType;
 
     @OneToMany(mappedBy = "user")
-    private List<Tasks> tasks;
+    private List<Task> tasks;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("owner-stores")
+    private List<Store> ownedStores;
+
+    @ManyToOne
+    @JoinColumn(name = "works_at_store_id")
+    @JsonBackReference("store-sellers")
+    private Store worksAtStore;
 
     private String getFirstName(String name) {
         return name.split(" ", 2)[0];
 
     }
+
+
 
     private String getLastName(String name) {
         String[] partes = name.split(" ", 2);

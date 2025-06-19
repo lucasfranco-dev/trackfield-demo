@@ -1,8 +1,11 @@
-package com.trackfield.todolist.Services;
+package com.trackfield.todolist.services;
 
-import com.trackfield.todolist.Exceptions.EntityNotFoundException;
-import com.trackfield.todolist.dtos.*;
-import com.trackfield.todolist.models.Tasks;
+import com.trackfield.todolist.dtos.task.SimpleTaskResponseDTO;
+import com.trackfield.todolist.dtos.task.TaskDTO;
+import com.trackfield.todolist.dtos.task.TaskResponseDTO;
+import com.trackfield.todolist.dtos.user.SimpleUserResponseDTO;
+import com.trackfield.todolist.exceptions.EntityNotFoundException;
+import com.trackfield.todolist.models.Task;
 import com.trackfield.todolist.models.User;
 import com.trackfield.todolist.repositories.TaskRepository;
 import com.trackfield.todolist.repositories.UserRepository;
@@ -21,13 +24,13 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
 
-    public Tasks getTaskById(Long id){
+    public Task getTaskById(Long id){
         return taskRepository.getReferenceById(id);
     }
 
     @Transactional
     public boolean toggleTaskStatus(Long taskId){
-        Tasks task = taskRepository.findById(taskId)
+        Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com o id: " + taskId));
         if (task.getFinished()) {
             task.setFinished(false);
@@ -38,7 +41,7 @@ public class TaskService {
     }
 
     public List<SimpleTaskResponseDTO> findActiveTasksByCpf(String userCpf){
-        List<Tasks> activeTasks = taskRepository.findByUserCpfAndFinished(userCpf, false);
+        List<Task> activeTasks = taskRepository.findByUserCpfAndFinished(userCpf, false);
 
         return activeTasks.stream().map(tasks -> new SimpleTaskResponseDTO(
                 tasks.getId(),
@@ -48,12 +51,12 @@ public class TaskService {
     }
 
     public TaskResponseDTO getTaskByIdResponse(Long id){
-        Tasks task = taskRepository.findById(id)
+        Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com o id: " + id));
         return toResponseDTO(task);
     }
 
-    private TaskResponseDTO toResponseDTO(Tasks task) {
+    private TaskResponseDTO toResponseDTO(Task task) {
         SimpleUserResponseDTO userDTO = new SimpleUserResponseDTO(
                 task.getUser().getCpf(),
                 task.getUser().getFirstName(),
@@ -62,11 +65,11 @@ public class TaskService {
         return new TaskResponseDTO(task.getId(), task.getTitle(), task.getDescription(), userDTO);
     }
 
-    public Tasks createTask(TaskDTO data){
+    public Task createTask(TaskDTO data){
         User user = userRepository.findById(data.userCpf())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com o id: " + data.userCpf()));
 
-        Tasks newTask = new Tasks();
+        Task newTask = new Task();
         newTask.setTitle(data.title());
         newTask.setDescription(data.description());
         newTask.setUser(user);
