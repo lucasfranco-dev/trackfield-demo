@@ -3,12 +3,16 @@ package com.trackfield.todolist.services;
 import com.trackfield.todolist.dtos.store.NominatimAPI.NominatimResponseDTO;
 import com.trackfield.todolist.dtos.store.StoreDTO;
 import com.trackfield.todolist.dtos.store.StoreResponseDTO;
+import com.trackfield.todolist.dtos.user.OwnerResponseDTO;
+import com.trackfield.todolist.dtos.user.SimpleUserResponseDTO;
 import com.trackfield.todolist.exceptions.AddressNotFoundException;
 import com.trackfield.todolist.exceptions.EntityNotFoundException;
 import com.trackfield.todolist.models.Location;
 import com.trackfield.todolist.models.Store;
+import com.trackfield.todolist.models.user.User;
 import com.trackfield.todolist.repositories.StoreRepository;
 import com.trackfield.todolist.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -18,6 +22,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.trackfield.todolist.utils.UserUtils.isOwner;
+
 @Service
 @RequiredArgsConstructor
 public class StoreService {
@@ -25,22 +31,22 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
-    private final UserService userService;
-
-    private final String NOMINATIM_API_URL = "https://nominatim.openstreetmap.org/search";
 
     public List<StoreResponseDTO> getAllStores(){
         List<Store> findedStores = storeRepository.findAll();
+
+
         return findedStores.stream()
-                .map(store -> new StoreResponseDTO(store.getId(), store.getStoreName(), userService.findById(store.getOwner().getCpf()),
+                .map(store -> new StoreResponseDTO(store.getId(), store.getStoreName(), toSimpleUserResponseDTO(store.getOwner().getCpf()),
                         store.getLocation().getStreet(), store.getLocation().getCity(), store.getLocation().getState(),
                         store.getLocation().getPostalCode())).collect(Collectors.toList());
     }
 
-    public Store createStore(StoreDTO data){
+    @Transactional
+    public StoreResponseDTO createStore(StoreDTO data){
         String address = String.join(", ", data.street(), data.city(), data.state());
 
-        Location location = geocodeAddress(address);
+        Location location = new Location();
 
         location.setCity(data.city());
         location.setStreet(data.street());
@@ -50,41 +56,45 @@ public class StoreService {
         Store newStore = new Store();
 
         newStore.setStoreName(data.storeName());
-        newStore.setOwner(userRepository.findById(data.cpfStoreOwner())
+
+        User owner = userRepository.findById(data.cpfStoreOwner())
                 .orElseThrow(() -> new EntityNotFoundException("Tentativa de definir dono recusada: " +
-                        "Usuário não encontrado pelo CPF: " + data.cpfStoreOwner())));
+                        "Usuário não encontrado pelo CPF: " + data.cpfStoreOwner()));
+        if (!isOwner(owner)){
+            throw new IllegalArgumentException("Apenas usuários do tipo OWNER(Dono) podem criar lojas.");
+        }
+
+        newStore.setOwner(owner);
+
+
         newStore.setLocation(location);
-        return storeRepository.save(newStore);
+        Store createdStore = storeRepository.save(newStore);
+
+        return toStoreResponseDTO(createdStore);
     }
 
-    private Location geocodeAddress(String address){
-        String url = UriComponentsBuilder.fromHttpUrl(NOMINATIM_API_URL)
-                .queryParam("q", address)
-                .queryParam("format", "json")
-                .queryParam("limit", 1)
-                .toUriString();
+    private StoreResponseDTO toStoreResponseDTO(Store store){
+        //VARIAVEIS AUXILIARES
+        User owner = store.getOwner();
+        Location location = store.getLocation();
 
-        NominatimResponseDTO[] response = restTemplate.getForObject(url, NominatimResponseDTO[].class);
+        //CRIANDO O RESPONSE DE OWNER SIMPLIFICADO QUE VAI SER RETORNADO DENTRO DO STORE RESPONSE
 
-        Location location = new Location();
+        SimpleUserResponseDTO ownerResponse = new SimpleUserResponseDTO(owner.getCpf(), owner.getFirstName(),
+                owner.getLastName(), owner.getUserType());
 
-        if (response != null && response.length > 0) {
-            location.setLatitude(BigDecimal.valueOf(Double.parseDouble(response[0].getLon())));
-            location.setLongitude(BigDecimal.valueOf(Double.parseDouble(response[0].getLon())));
-        }
-        else {
-            throw new AddressNotFoundException("Não foi possível encontrar as coordenadas do endereço: "
-            + address);
-        }
 
-        return location;
+        StoreResponseDTO response = new StoreResponseDTO(store.getId(), store.getStoreName(), ownerResponse,
+                location.getStreet(), location.getState(), location.getState(), location.getPostalCode());
+
+        return response;
     }
 
-    public Store verifyStoreExists(String storeId){
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new EntityNotFoundException("Não foi possível encontrar nenhuma loja com o id: "
-                        +storeId));
+    private SimpleUserResponseDTO toSimpleUserResponseDTO(String cpf){
+        User findedUser = userRepository.findById(cpf)
+                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado pelo ID: "+ cpf));
 
-        return store;
+        return new SimpleUserResponseDTO(findedUser.getCpf(), findedUser.getFirstName(), findedUser.getLastName(),
+                findedUser.getUserType());
     }
 }

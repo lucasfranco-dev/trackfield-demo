@@ -17,9 +17,4 @@ public class Location {
     private String state;
     private String postalCode;
 
-    @Column(precision = 10, scale = 8)
-    private BigDecimal latitude;
-
-    @Column(precision = 11, scale = 8)
-    private BigDecimal longitude;
 }
