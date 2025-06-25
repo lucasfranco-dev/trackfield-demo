@@ -4,18 +4,20 @@ import com.trackfield.todolist.services.TaskService;
 import com.trackfield.todolist.dtos.task.TaskDTO;
 import com.trackfield.todolist.dtos.task.TaskResponseDTO;
 import com.trackfield.todolist.models.Task;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/tasks")
+@RequiredArgsConstructor
 public class TaskController {
 
-    private TaskService taskService;
-
-    public TaskController(TaskService taskService){
-        this.taskService = taskService;
-    }
+    private final TaskService taskService;
 
     @GetMapping("/{id}")
     public ResponseEntity getTask(@PathVariable Long id){ // <<-- Retorna o DTO
@@ -34,13 +36,16 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity createTask(@RequestBody TaskDTO data){
-        Task task = taskService.createTask(data);
+    public ResponseEntity<TaskResponseDTO> createTask(@RequestBody TaskDTO data){
+        TaskResponseDTO createdTaskResponse = taskService.createTask(data);
 
-        TaskResponseDTO response = taskService.getTaskByIdResponse(task.getId());
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdTaskResponse.id())
+                .toUri();
 
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.created(location).body(createdTaskResponse);
     }
 
 }
