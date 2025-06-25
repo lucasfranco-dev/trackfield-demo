@@ -1,7 +1,7 @@
 package com.trackfield.todolist.dtos.user;
 
 import com.trackfield.todolist.dtos.task.SimpleTaskResponseDTO;
-import com.trackfield.todolist.models.UserType;
+import com.trackfield.todolist.models.user.UserType;
 
 import java.util.List;
 
