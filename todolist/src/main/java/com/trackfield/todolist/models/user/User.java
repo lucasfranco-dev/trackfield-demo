@@ -1,9 +1,11 @@
-package com.trackfield.todolist.models;
+package com.trackfield.todolist.models.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.trackfield.todolist.dtos.user.UserDTO;
+import com.trackfield.todolist.models.Store;
+import com.trackfield.todolist.models.Task;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
