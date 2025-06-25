@@ -7,8 +7,8 @@ import com.trackfield.todolist.exceptions.EntityNotFoundException;
 import com.trackfield.todolist.dtos.user.UserDTO;
 import com.trackfield.todolist.dtos.user.SellerResponseDTO;
 import com.trackfield.todolist.models.Store;
-import com.trackfield.todolist.models.User;
-import com.trackfield.todolist.models.UserType;
+import com.trackfield.todolist.models.user.User;
+import com.trackfield.todolist.models.user.UserType;
 import com.trackfield.todolist.repositories.StoreRepository;
 import com.trackfield.todolist.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,16 +24,11 @@ public class UserService {
     private final TaskService taskService;
     private final StoreRepository storeRepository;
 
-    public SellerResponseDTO findById(String cpf){
+    public SellerOrOwnerView findById(String cpf){
         User findedUser = userRepository.findById(cpf)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado pelo CPF: " + cpf));
 
-        SellerResponseDTO response = new SellerResponseDTO(findedUser.getCpf(),
-                findedUser.getFirstName(),
-                findedUser.getLastName(),
-                findedUser.getEmail(),
-                findedUser.getUserType(),
-                taskService.findActiveTasksByCpf(findedUser.getCpf()));
+        SellerOrOwnerView response = sellerOrOwner(findedUser);
         return response;
     }
 
@@ -41,10 +36,10 @@ public class UserService {
         List<User> findedUsers = userRepository.findAll();
 
         return findedUsers.stream()
-                .map(user -> teste(user)).toList();
+                .map(user -> sellerOrOwner(user)).toList();
     }
 
-    public User createNewUser(UserDTO data){
+    public SellerOrOwnerView createNewUser(UserDTO data){
         User newUser = new User(data);
 
         if (data.userType() == UserType.SELLER){
@@ -62,11 +57,12 @@ public class UserService {
                 throw new IllegalArgumentException("Donos(OWNER) não podem trabalhar em nenhuma loja");
             }
         }
+        User createdUser = userRepository.save(newUser);
 
-        return userRepository.save(newUser);
+        return sellerOrOwner(createdUser);
     }
 
-    private SellerOrOwnerView teste(User user){
+    private SellerOrOwnerView sellerOrOwner(User user){
         if (user.getUserType() == UserType.SELLER){
             return new SellerResponseDTO(
                     user.getCpf(),

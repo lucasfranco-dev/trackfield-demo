@@ -6,15 +6,19 @@ import com.trackfield.todolist.dtos.task.TaskResponseDTO;
 import com.trackfield.todolist.dtos.user.SimpleUserResponseDTO;
 import com.trackfield.todolist.exceptions.EntityNotFoundException;
 import com.trackfield.todolist.models.Task;
-import com.trackfield.todolist.models.User;
+import com.trackfield.todolist.models.user.User;
+import com.trackfield.todolist.models.user.UserType;
 import com.trackfield.todolist.repositories.TaskRepository;
 import com.trackfield.todolist.repositories.UserRepository;
+import com.trackfield.todolist.utils.UserUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.trackfield.todolist.utils.UserUtils.isSeller;
 
 @Service
 @RequiredArgsConstructor
@@ -53,28 +57,43 @@ public class TaskService {
     public TaskResponseDTO getTaskByIdResponse(Long id){
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tarefa não encontrada com o id: " + id));
-        return toResponseDTO(task);
+        return toTaskResponseDTO(task);
     }
 
-    private TaskResponseDTO toResponseDTO(Task task) {
-        SimpleUserResponseDTO userDTO = new SimpleUserResponseDTO(
-                task.getUser().getCpf(),
-                task.getUser().getFirstName(),
-                task.getUser().getLastName()
-        );
-        return new TaskResponseDTO(task.getId(), task.getTitle(), task.getDescription(), userDTO);
-    }
 
-    public Task createTask(TaskDTO data){
+    public TaskResponseDTO createTask(TaskDTO data){
         User user = userRepository.findById(data.userCpf())
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com o id: " + data.userCpf()));
+
+        if (!isSeller(user)){
+            throw new IllegalArgumentException("Apenas usuários do tipo SELLER(vendedor podem ter tarefas.");
+        }
+
 
         Task newTask = new Task();
         newTask.setTitle(data.title());
         newTask.setDescription(data.description());
         newTask.setUser(user);
-        return taskRepository.save(newTask);
+
+        Task savedTask = taskRepository.save(newTask);
+
+        return toTaskResponseDTO(savedTask);
     }
+
+
+    private TaskResponseDTO toTaskResponseDTO(Task task) {
+        User taskUser = task.getUser();
+
+        SimpleUserResponseDTO userDTO = new SimpleUserResponseDTO(
+                taskUser.getCpf(),
+                taskUser.getFirstName(),
+                taskUser.getLastName(),
+                taskUser.getUserType()
+        );
+        return new TaskResponseDTO(task.getId(), task.getTitle(), task.getDescription(), userDTO);
+    }
+
+
 
 
 }
