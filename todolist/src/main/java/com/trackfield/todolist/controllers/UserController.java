@@ -32,7 +32,7 @@ public class UserController {
     @GetMapping("/{cpf}")
     public ResponseEntity findUser(@PathVariable String cpf){
         SellerOrOwnerView response = userService.findById(cpf);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping

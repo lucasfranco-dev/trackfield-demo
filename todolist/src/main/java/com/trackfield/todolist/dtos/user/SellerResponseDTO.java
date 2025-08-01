@@ -11,6 +11,6 @@ public record SellerResponseDTO(
         String lastName,
         String email,
         UserType userType,
-        List<SimpleTaskResponseDTO> tasks) implements SellerOrOwnerView
+        List<SimpleTaskResponseDTO> activeTasks) implements SellerOrOwnerView
 {
 }

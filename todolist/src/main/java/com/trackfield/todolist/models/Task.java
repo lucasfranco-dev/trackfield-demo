@@ -14,7 +14,7 @@ import lombok.Setter;
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 public class Task {
-    public static final String TABLE_NAME = "tasks";
+    public static final String TABLE_NAME = "activeTasks";
 
     @Id
     @Column(unique = true)
